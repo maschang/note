@@ -1,0 +1,597 @@
+
+データバインディングの種類
+- 双方向バインディング
+- 単方向バインディング
+- ワンタイムバインディング
+
+—————————————————
+detective: 指令
+
+—————————————————
+v-bind:
+プロパティに対してはマスタッシュ構文が使えないので、v-bindを使う。
+
+例、v-bind:value=“message”
+
+—————————————————
+
+v-if:
+条件分岐。要素の表示非表示を切り替えることが可能。
+要素がDOMレベルで削除される。
+※DOMを再描画するコストがかかるので頻繁な切り替えの場合は v-showを利用する
+
+—————————————————
+
+v-show:
+こちらではcssでdidplay: noneが付与される。
+
+—————————————————
+
+v-for:
+繰り返し構文。
+配列の繰り返し
+<ul>
+  <li v-for=‘items in item’>{{ value }}</li>
+</ul>
+
+オブジェクトの繰り返しも可能。その場合第二引数をとってプロパティ名を表示することも可能。
+<ul>
+  <li v-for=‘(value, key) in item’>
+    {{ key }}: {{ value }}
+  </li>
+</ul>
+
+変更メソッド。
+以下のメソッドに関してVueでラップされている。
+
+push()
+pop()
+shift()
+unshift()
+splice()
+sort()
+reverse()
+
+配列に対してこれらのメソッドが実行されるとVueが再レンダリングされる。
+filter()、concat()、そしてslice()のようなメソッドは元の配列の変更ではなく新しく配列を返す。
+
+https://v1-jp.vuejs.org/guide/list.html#%E9%85%8D%E5%88%97%E3%81%AE%E7%BD%AE%E3%81%8D%E6%8F%9B%E3%81%88
+
+—————————————————
+
+v-on:
+イベント処理を使ってOnclickみたいな動きを実現する。
+<button v-on:click=‘showTime’>Click!</button>
+<p>{{ now }}</p>
+
+var app = new Vue({
+  // options
+  el: '#app',
+  data: {
+    now: ''
+  },
+  methods: {
+    showTime: function() {
+      this.now = new Date().toLocaleString();
+    }
+  }
+})
+
+—————————————————
+
+v-model
+双方向データバインディングを実現する。
+双方向データバインディングとは「dataオブジェクトの値変更」→「テンプレートの更新」に加えて「テンプレートの値変更」→「dataオブジェクトの値変更」が可能
+
+—————————————————
+
+省略形
+v-bind:href='link'
+:href='link'a
+
+v-on:click='onclick'
+@click='onclick'
+
+例
+```
+<!-- メソッドハンドラ -->
+<button v-on:click="doThis"></button>
+<!-- インラインステートメント -->
+<button v-on:click="doThat('hello', $event)"></button>
+<!-- 省略記法 -->
+<button @click="doThis"></button>
+<!-- イベント伝播の停止 -->
+<button @click.stop="doThis"></button>
+<!-- デフォルト挙動を防ぐ -->
+<button @click.prevent="doThis"></button>
+<!-- 式なしでデフォルト挙動を防ぐ -->
+<form @submit.prevent></form>
+<!-- 修飾子の繋ぎ合わせ -->
+<button @click.stop.prevent="doThis"></button>
+<!-- キーエイリアスを使ったキー修飾子 -->
+<input @keyup.enter="onEnter">
+<!-- キーコードを使ったキー修飾子 -->
+<input @keyup.13="onEnter">
+```
+
+{{{ text }}}
+v-html: htmlとして評価して表示する。
+と一緒。
+
+{{* text }}
+v-once: 初回のみ評価を行いそれ以後は静的コンテンツとして扱う。
+
+—————————————————
+
+コンポーネント
+
+コンポーネント化することでコードの再利用性が高まり、コードの見通しがよくなる。
+
+構文
+
+```
+Vue.component(コンポーネント名称, コンポーネントの定義情報)
+```
+
+
+演習
+
+```html
+<div id="app">
+  <p>{{ message }}</p>
+  <p v-if='toggle'><a :href='url'>Vue.js</a></p>
+  <button @click='clicked'>Click here!</button>
+  <ul>
+    <li v-for='language in languages'>{{ language }}</li>
+  </ul>
+
+  <input type='text' v-model='message'></input>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.js"></script>
+
+```
+
+```hello.vue
+Vue.component('hello-component', {
+  template: '<p>Hello</p>'
+})
+
+var app = new Vue({
+  // options
+  el: '#app',
+  data: {
+    message: 'hello world',
+    url: 'https://jp.vuejs.org/v2/guide/plugins.html',
+    toggle: true,
+    languages: ['JavaScript', 'Ruby', 'Python']
+  },
+  methods: {
+    clicked: function() {
+      this.message = 'Clicked!'
+    }
+  }
+})
+```
+
+—————————————————
+Todoアプリ
+
+```index.html
+<div id="app">
+  <h2>Todo list</h2>
+  <form @submit.prevent>
+    <input type='text' v-model='newItem'>
+    <button @click='addItem'>Add</button>
+  </form>
+
+  <ul>
+    <li v-for='(todo, index) in todos'>
+      <input type='checkbox' v-model='todo.isDone'>
+      <span :class='{done: todo.isDone}'>{{ todo.item }}
+      </span>
+      <button @click='deleteItem(index)'>delete</button>
+    </li>
+  </ul>
+
+  <pre>{{ $data }}</pre>
+</div>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.js"></script>
+
+```
+
+```main.js
+var app = new Vue({
+  // options
+  el: '#app',
+  data: {
+    newItem: '',
+    todos: []
+  },
+  methods: {
+    addItem: function(event) {
+      if (this.newItem === '') return;
+
+      var todo = {
+        item: this.newItem,
+        isDone: false
+      };
+
+      this.todos.push(todo);
+      this.newItem = '';
+    },
+    deleteItem: function(index) {
+      this.todos.splice(index, 1)
+    }
+  }
+})
+```
+
+```main.css
+#app ul {
+  list-style: none;
+}
+
+#app li > span.done {
+  text-decoration: line-through;
+}
+```
+
+
+—————————————————
+BitCoin価格取得アプリ（CoinDeskAPIを利用）
+
+※bind(this)はよくわかっていない
+```index.html
+<div id="app" v-cloak>
+  <h2>bitcoin price</h2>
+  <section v-if='hasError'>Error .</section>
+  <section v-else='hasError'>
+    <div v-if='loading'>Loading ...</div>
+    <div v-else='loading'>
+      <ul>
+        <li v-for='(rate, currency) in bpi'>
+          {{ currency }} : {{ rate.rate_float | currencyDecimal}}
+        </li>
+      </ul>
+    </div>
+  </section>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios@0.18.0/dist/axios.min.js"></script>
+```
+
+```main.js
+var app = new Vue({
+  // options
+  el: '#app',
+  data: {
+    bpi: null,
+    hasError: false,
+    loading: true
+  },
+  mounted: function() {
+    axios.get('https://api.coindesk.com/v1/bpi/currentprice.json').then(function(response) {
+        this.bpi = response.data.bpi
+      }.bind(this))
+      .catch(function(error) {
+        console.log(error)
+        this.hasError = true
+      }.bind(this))
+      .finally(function() {
+        this.loading = false
+      }.bind(this))
+  },
+  filters: {
+    currencyDecimal(value) {
+      return value.toFixed(2)
+    }
+  }
+})
+```
+
+—————————————————
+テンプレート構文
+
+テンプレート制御構文。
+- v-once: 初回のみ評価を行いそれ以後は静的コンテンツとして扱う。
+- v-pre: コンパイルをスキップして、生マスタッシュタグを表示。
+- v-html: htmlとして評価して表示する。
+- v-cloak: cloak（覆い隠す）。Vueの評価が終わる前にマスタッシュタグがエンドユーザーに見えてしまうのを防ぐ。css側で `[v-cloak] { display: none; }` を書いて置く。
+- v-text: data属性の内容を表示する。マスタッシュ構文の糖衣構文。
+
+
+—————————————————
+ローカルフィルタ
+helperみたいなやつ。
+構文
+{{ 式 | filter名 }}
+
+
+```
+var app = new Vue({
+  el: '#app',
+  data: {
+    price:  28900
+  },
+  filters: {
+    numberFormat: function(value){
+       return value.toLocalString()
+    }
+  }
+})
+```
+
+グローバルフィルタ
+グローバルで利用できるフィルタのこと。
+これはVueインスタンスの初期化前に行う。
+
+```
+Vue.filter('toUSD', function(jpy){
+  return jpy / 100
+})
+
+Vue.filter('numberFormat', function(value){
+  return value.toLocaleString()
+})
+
+var app = new Vue({
+  // options
+  el: '#app',
+  data: {
+    jpy: 28000000
+  }
+})
+```
+
+フィルタの引数について
+パイプでつなぐ場合、フィルタの第一引数に自動的に埋め込まれるので省略することに注意
+
+```
+<div id="app">
+  <div>{{ text | truncate(10, '...') }}</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios@0.18.0/dist/axios.min.js"></script>
+
+```
+
+```
+Vue.filter('truncate', function(text, length, surffix){
+  return text.substring(0, length) + surffix
+})
+
+
+var app = new Vue({
+  // options
+  el: '#app',
+  data: {
+    text: '親譲りの無鉄砲で小供の時から損ばかりしている。小学校に居る時分学校の二階から飛び降りて一週間ほど腰を抜かした事がある。なぜそんな無闇をしたと聞く人があるかも知れぬ。別段深い理由でもない。新築の二階から首を出していたら、同級生の一人が冗談に、いくら威張っても、そこから飛び降りる事は出来まい。弱虫やーい。と囃したからである。小使に負ぶさって帰って来た時、おやじが大きな眼をして二階ぐらいから飛び降りて腰を抜かす奴があるかと云ったから、この次は抜かさずに飛んで見せますと答えた。（青空文庫より）'
+  }
+})
+
+```
+
+
+—————————————————
+算出プロパティ
+コードの再利用性を高める為の処理。
+
+```
+<div id="app">
+<p>
+  base price:   <input type='text' v-model='basePrice'>
+</p>
+
+<p>
+  tax included price:   <input type='text' v-model='taxIncludedPrice'>
+</p>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.js"></script>
+```
+
+```
+new Vue({
+  el: '#app',
+  data: {
+    basePrice: 100
+  },
+  computed: {
+    taxIncludedPrice: {
+      get: function() {
+        return parseInt(this.basePrice * 1.08) //整数を返す関数
+      },
+      set: function(taxIncludedPrice) {
+        this.basePrice = Math.ceil(taxIncludedPrice / 1.08)  //小数点以下切り上げ
+      }
+    }
+  }
+})
+```
+
+算出プロパティとメソッドの違いについて
+- プロパティとメソッド
+  - computed: はプロパティ、methods: はメソッドなので呼び出す際にhoge()の()のある無しに違いがある。
+- getter, setter
+  - computed: ...getter, setter /// methods: ...getter
+- キャッシュ
+  - computed: ...される /// methods: ...されない
+  - つまり、computedは中で利用されるdataが変更されない限り一度計算された結果を返し続ける。（パフォーマンス良い）methodsは毎回都度計算されるのでパフォーマンス悪い。
+
+算出プロパティのキャッシュについて
+
+算出プロパティとフィルタの使い分けについて
+
+—————————————————
+track-by:
+多分、パフォーマンス向上のKeyになる。
+ユニークなKeyを使って再描画するためのサポートになる。
+
+v-forを使う場合、
+
+```
+<div v-for="item in items" track-by="$index">
+  <!-- content -->
+</div>
+```
+
+とかでも良さそう。
+
+—————————————————
+https://v1-jp.vuejs.org/guide/forms.html#%E3%83%91%E3%83%A9%E3%83%A1%E3%83%BC%E3%82%BF%E5%B1%9E%E6%80%A7
+
+フォームパラメータ属性
+lazy
+デフォルトでは、v-model は各 input イベント後に、データと入力を同期します。change イベント後、同期するための振舞いを変更するために、lazy 属性を追加します:
+
+number
+ユーザーの入力において自動的に数値として永続化する場合、v-model を管理された input の値に対して、number 属性を追加することができます。
+
+debounce
+debounce パラメータは、入力値が Model に同期される前の各キーストローク後の最小遅延の設定を許可します。これは、例えば、先行入力自動補完向けに Ajax リクエストを作成するような、各更新時に高価な操作を実行しているときには便利です。
+
+
+—————————————————
+監視プロパティ
+
+> 特定のデータや算出プロパティの状態を監視して、変化があった時に登録した処理を自動的に実行できるもの。
+
+
+```
+<div id='app'>
+  <p>
+    {{ message }}
+  </p>
+  <p>
+    <input type='text' v-model:value='message'>
+  </p>
+  <div>
+    {{ $data }}
+  </div>
+</div>
+
+<script src='https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.min.js'></script>
+```
+
+```
+var app = new Vue({
+  el: '#app',
+  data: {
+    message: 'hello'
+  },
+  watch: {
+    message: function(newValue, oldValue) {
+      console.log('new: %s, old: %s', newValue, oldValue)
+    }
+  }
+})
+```
+
+—————————————————
+単位変換アプリ
+
+km, m, mm をそれぞれ入力すると相互変換してくれるようなアプリ
+
+```<div id='app'>
+  <p>
+    <input type='text' v-model:value='km'> km
+  </p>
+  <p>
+    <input type='text' v-model:value='m'> m
+  </p>
+  <p>
+    <input type='text' v-model:value='mm'> mm
+  </p>
+</div>
+
+<script src='https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.min.js'></script>
+
+```
+
+```
+var app = new Vue({
+  el: '#app',
+  data: {
+    km: 0,
+    m: 0,
+    mm: 0
+  },
+  watch: {
+    km: function(value) {
+      //console.log(value)
+      this.km = value
+      this.m = value * 1000
+      this.mm = value * 1000000
+    },
+    m: function(value) {
+      this.km = value / 1000
+      this.m = value
+      this.mm = value * 1000
+    },
+    mm: function(value) {
+      this.km = value / 1000000
+      this.m = value / 1000
+      this.mm = value
+    }
+  }
+})
+```
+
+
+—————————————————
+算出プロパティ vs 監視プロパティ
+
+どちらでも実装できる場合、基本的にはシンプルに記述できる算出プロパティの利用を推奨。
+
+—————————————————
+監視プロパティのオプション
+
+deep: ネストされたオブジェクトも監視 default: false
+immediate: 初期読み込み時にも呼び出す default: false
+
+deep
+※handlerは関数実行時のアクションをインターセプトすることができる関数（？）という認識
+以下のコードはブラウザから `app.colors[1] = 'white'` みたいにして配列の要素を変更し、その際にhandlerが実行されるか確認する。defaultは `deep: false` なのでその場合は実行されない。
+※JSON.stringify Javascriptの値をJSON文字列に変換するメソッド
+
+仕様上の注意：オブジェクト、または配列を変更する場合、それらは同じオブジェクト・配列を参照するため、ハンドラの引数で取得できる古い値は、新しい値と同じになるという点に注意。
+以下の場合、handlerで受け取る引数newV, oldVは同じ値になってしまうということ。
+```
+var app = new Vue({
+  el: '#app',
+  data: {
+    colors: [
+      { name: 'red' },
+      { name: 'green' },
+      { name: 'blue' }
+    ]
+  },
+  watch: {
+    colors: {
+      handler: function(newV, oldV){
+        console.log('new: %s, old: %s',
+        JSON.stringify(newV, null, '\t'),
+        JSON.stringify(newV, null, '\t'))
+      },
+      deep: true,
+      immediate: true
+    }
+  }
+})
+```
+
+
+
+
+—————————————————
+QiitaAPIを使っての記事取得
+
+※created, mounted Domにアクセスする必要がなければcreatedの方が早いとされている
